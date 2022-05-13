@@ -65,6 +65,7 @@ void Photino::Register(HINSTANCE hInstance)
 
 	RegisterClassEx(&wcx);
 
+    // todo @Jared: bring DPI awareness back on newer versions of windows, without breaking Win7 compat
 	//SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
 }
 
