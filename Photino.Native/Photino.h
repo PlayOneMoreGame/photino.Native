@@ -1,8 +1,14 @@
 #pragma once
 
+
+#define COMPAT_DPI
+
 #ifdef _WIN32
+
+#ifdef COMPAT_DPI
 #define WINVER _WIN32_WINNT_WIN7
 #define _WIN32_WINNT _WIN32_WINNT_WIN7
+#endif
 
 #include <Windows.h>
 #include <wil/com.h>
@@ -104,7 +110,7 @@ struct PhotinoInitParams
 	int Size;
 };
 
-class Photino
+class __declspec(dllexport) Photino
 {
 private:
 	WebMessageReceivedCallback _webMessageReceivedCallback;
