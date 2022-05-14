@@ -1,4 +1,3 @@
-#pragma once
 
 #include "Photino.Windows.DpiHelp.h"
 
