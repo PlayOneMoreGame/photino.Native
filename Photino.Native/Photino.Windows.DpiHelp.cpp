@@ -32,7 +32,7 @@ UINT FallbackGetDpiForWindow(HWND hwnd)
 
 DPI_AWARENESS_CONTEXT FallbackSetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT dpiContext)
 {
-	return dpiContext;
+	return nullptr;
 }
 
 int FallbackGetSystemMetricsForDpiFunc(int nIndex, UINT dpi)
