@@ -15,7 +15,6 @@ typedef int(WINAPI *_GetSystemMetricsForDpiFunc)(int nIndex, UINT dpi);
 //
 // ===================
 static HMODULE s_user32 = nullptr;
-static bool s_initialized = false;
 
 static _GetDpiForWindowFunc _getDpiForWindow;
 static _GetSystemMetricsForDpiFunc _getSystemMetricsForDpi;
@@ -23,61 +22,94 @@ static _SetThreadDpiAwarenessContextFunc _setThreadDpiAwarenessContext;
 
 // =============================================
 //
+// Compat-friendly fallbacks
+//
+// ===================
+UINT FallbackGetDpiForWindow(HWND hwnd)
+{
+	return 96;
+}
+
+DPI_AWARENESS_CONTEXT FallbackSetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT dpiContext)
+{
+	return dpiContext;
+}
+
+int FallbackGetSystemMetricsForDpiFunc(int nIndex, UINT dpi)
+{
+	return GetSystemMetrics(nIndex);
+}
+
+void SetFallbacks()
+{
+	_getDpiForWindow = FallbackGetDpiForWindow;
+	_getSystemMetricsForDpi = FallbackGetSystemMetricsForDpiFunc;
+	_setThreadDpiAwarenessContext = FallbackSetThreadDpiAwarenessContext;
+}
+
+// =============================================	
+//
 // Exports
 //
 // ===================
 void CloseDpiHelper()
 {
-	if (s_user32)
+	SetFallbacks();
+
+	if (s_user32 != nullptr)
 	{
-		s_initialized = false;
 		FreeLibrary(s_user32);
+		s_user32 = nullptr;
 	}
 }
 
 int GetScreenHeight(int dpi)
 {
-	if (s_initialized && _getSystemMetricsForDpi != nullptr)
-		return _getSystemMetricsForDpi(SM_CYSCREEN, dpi);
-
-	return GetSystemMetrics(SM_CYSCREEN);
+	return _getSystemMetricsForDpi(SM_CYSCREEN, dpi);
 }
 
 int GetScreenWidth(int dpi)
 {
-	if (s_initialized && _getSystemMetricsForDpi != nullptr)
-		return _getSystemMetricsForDpi(SM_CXSCREEN, dpi);
-
-	return GetSystemMetrics(SM_CXSCREEN);
+	return _getSystemMetricsForDpi(SM_CXSCREEN, dpi);
 }
 
 unsigned int GetWindowDpi(HWND hwnd)
 {
-	if (s_initialized && _getDpiForWindow != nullptr)
-		return _getDpiForWindow(hwnd);
-
-	return 96;
+	return _getDpiForWindow(hwnd);
 }
 
 void InitDpiHelper()
 {
+	SetFallbacks();
+	
 	s_user32 = LoadLibrary(L"User32.dll");
-
 	if (s_user32 == nullptr)
 	{
 		return;
 	}
 
-	_getDpiForWindow = (_GetDpiForWindowFunc)GetProcAddress(s_user32, "GetDpiForWindow");
-	_getSystemMetricsForDpi = (_GetSystemMetricsForDpiFunc)GetProcAddress(s_user32, "GetSystemMetricsForDpi");
-	_setThreadDpiAwarenessContext = (_SetThreadDpiAwarenessContextFunc)GetProcAddress(s_user32, "SetThreadDpiAwarenessContext");
-
-	if (_setThreadDpiAwarenessContext)
+	auto win10GetDpiForWindow = (_GetDpiForWindowFunc)GetProcAddress(s_user32, "GetDpiForWindow");
+	if (win10GetDpiForWindow != nullptr)
 	{
-		auto oldVal = _setThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
-		if (oldVal != nullptr)
+		_getDpiForWindow = win10GetDpiForWindow;
+	}
+
+	auto win10GetSystemMetricsForDpi = (_GetSystemMetricsForDpiFunc)GetProcAddress(s_user32, "GetSystemMetricsForDpi");
+	if (win10GetSystemMetricsForDpi != nullptr)
+	{
+		_getSystemMetricsForDpi = win10GetSystemMetricsForDpi;
+	}
+
+	auto win10SetThreadDpiAwarenessContext = (_SetThreadDpiAwarenessContextFunc)GetProcAddress(s_user32, "SetThreadDpiAwarenessContext");
+	if (win10SetThreadDpiAwarenessContext != nullptr)
+	{
+		auto oldVal = win10SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
+		if (oldVal == nullptr)
 		{
-			s_initialized = true;
+			CloseDpiHelper(); // failed init of the win10+ apis
+			return;
 		}
+
+		_setThreadDpiAwarenessContext = win10SetThreadDpiAwarenessContext;
 	}
 }
