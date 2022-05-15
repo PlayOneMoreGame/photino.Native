@@ -70,9 +70,9 @@ void Photino::Register(HINSTANCE hInstance)
 	RegisterClassEx(&wcx);
 
 #ifdef COMPAT_DPI
-    InitDpiHelper();
+	InitDpiHelper();
 #else
-    SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
+	SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
 #endif
 }
 
@@ -241,7 +241,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 Photino::~Photino()
 {
 #ifdef COMPAT_DPI
-    CloseDpiHelper();
+	CloseDpiHelper();
 #endif
 
 	if (_startUrl != NULL) delete[]_startUrl;
@@ -383,13 +383,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 void Photino::Center()
 {
 #ifdef COMPAT_DPI
-    int screenDpi = GetWindowDpi(_hWnd);
-    int screenHeight = GetScreenHeight(screenDpi);
-    int screenWidth = GetScreenWidth(screenDpi);
+	int screenDpi = GetWindowDpi(_hWnd);
+	int screenHeight = GetScreenHeight(screenDpi);
+	int screenWidth = GetScreenWidth(screenDpi);
 #else
-    int screenDpi = GetDpiForWindow(_hWnd);
-    int screenHeight = GetSystemMetricsForDpi(SM_CYSCREEN, screenDpi);
-    int screenWidth = GetSystemMetricsForDpi(SM_CXSCREEN, screenDpi);
+	int screenDpi = GetDpiForWindow(_hWnd);
+	int screenHeight = GetSystemMetricsForDpi(SM_CYSCREEN, screenDpi);
+	int screenWidth = GetSystemMetricsForDpi(SM_CXSCREEN, screenDpi);
 #endif
 
 	RECT windowRect = {};
@@ -473,9 +473,9 @@ void Photino::GetResizable(bool* resizable)
 unsigned int Photino::GetScreenDpi()
 {
 #ifdef COMPAT_DPI
-    return GetWindowDpi(_hWnd);
+	return GetWindowDpi(_hWnd);
 #else
-    return GetDpiForWindow(_hWnd);
+	return GetDpiForWindow(_hWnd);
 #endif
 }
 
