@@ -11,36 +11,45 @@ typedef int(WINAPI *_GetSystemMetricsForDpiFunc)(int nIndex, UINT dpi);
 
 // =============================================
 //
+// Forward declarations
+//
+// ===================
+UINT FallbackGetDpiForWindow(HWND hwnd);
+DPI_AWARENESS_CONTEXT FallbackSetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT dpiContext);
+int FallbackGetSystemMetricsForDpiFunc(int nIndex, UINT dpi);
+
+// =============================================
+//
 // Statics
 //
 // ===================
 static HMODULE s_user32 = nullptr;
 
-static _GetDpiForWindowFunc _getDpiForWindow;
-static _GetSystemMetricsForDpiFunc _getSystemMetricsForDpi;
-static _SetThreadDpiAwarenessContextFunc _setThreadDpiAwarenessContext;
+static _GetDpiForWindowFunc _getDpiForWindow = FallbackGetDpiForWindow;
+static _GetSystemMetricsForDpiFunc _getSystemMetricsForDpi = FallbackGetSystemMetricsForDpiFunc;
+static _SetThreadDpiAwarenessContextFunc _setThreadDpiAwarenessContext = FallbackSetThreadDpiAwarenessContext;
 
 // =============================================
 //
-// Compat-friendly fallbacks
+// Helpers
 //
 // ===================
-UINT FallbackGetDpiForWindow(HWND hwnd)
+static UINT FallbackGetDpiForWindow(HWND hwnd)
 {
 	return 96;
 }
 
-DPI_AWARENESS_CONTEXT FallbackSetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT dpiContext)
+static DPI_AWARENESS_CONTEXT FallbackSetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT dpiContext)
 {
 	return nullptr;
 }
 
-int FallbackGetSystemMetricsForDpiFunc(int nIndex, UINT dpi)
+static int FallbackGetSystemMetricsForDpiFunc(int nIndex, UINT dpi)
 {
 	return GetSystemMetrics(nIndex);
 }
 
-void SetFallbacks()
+static void SetFallbacks()
 {
 	_getDpiForWindow = FallbackGetDpiForWindow;
 	_getSystemMetricsForDpi = FallbackGetSystemMetricsForDpiFunc;
