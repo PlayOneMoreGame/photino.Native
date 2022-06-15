@@ -234,6 +234,9 @@ Photino::Photino(PhotinoInitParams* initParams)
 		SetTopmost(true);
 
 	this->_toastHandler = new WinToastHandler(this);
+	// OMG Begin - stop screwing with our shortcuts
+	WinToast::instance()->setShortcutPolicy(WinToast::SHORTCUT_POLICY_IGNORE);
+	// OMG End
 	WinToast::instance()->initialize();
 	Photino::Show();
 }
