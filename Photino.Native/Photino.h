@@ -12,6 +12,7 @@
 #include <Windows.h>
 #include <wil/com.h>
 #include <WebView2.h>
+#include <WebView2EnvironmentOptions.h>
 typedef wchar_t *AutoString;
 class WinToastHandler;
 #else
