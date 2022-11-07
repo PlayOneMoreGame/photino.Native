@@ -92,6 +92,7 @@ Photino::Photino(PhotinoInitParams* initParams)
 	}
 
 	_windowTitle = new wchar_t[256];
+	_gpuDisabled = initParams->GPUDisabled;
 
 	if (initParams->TitleWide != NULL)
 	{
@@ -263,16 +264,16 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
 	{
-	case WM_CREATE: 
+	case WM_CREATE:
 	{
 		EnableDarkMode(hwnd, true);
-		if (IsDarkModeEnabled()) 
+		if (IsDarkModeEnabled())
 		{
 			RefreshNonClientArea(hwnd);
 		}
 		break;
 	}
-	case WM_SETTINGCHANGE: 
+	case WM_SETTINGCHANGE:
 	{
 		if (IsColorSchemeChange(lParam))
 			SendMessageW(hwnd, WM_THEMECHANGED, 0, 0);
@@ -287,11 +288,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_ACTIVATE:
 	{
 		Photino* Photino = hwndToPhotino[hwnd];
-		if (LOWORD(wParam) == WA_INACTIVE) 
+		if (LOWORD(wParam) == WA_INACTIVE)
 		{
 			Photino->InvokeFocusOut();
 		}
-		else 
+		else
 		{
 			Photino->InvokeFocusIn();
 		}
@@ -435,6 +436,11 @@ void Photino::GetFullScreen(bool* fullScreen)
 {
 	LONG lStyles = GetWindowLong(_hWnd, GWL_STYLE);
 	if (lStyles & WS_POPUP) *fullScreen = true;
+}
+
+void Photino::GetGPUDisabled(bool* gpuDisabled)
+{
+	*gpuDisabled = _gpuDisabled;
 }
 
 void Photino::GetGrantBrowserPermissions(bool* grant)
@@ -747,7 +753,9 @@ void Photino::AttachWebView()
 	PCWSTR runtimePath = runtimePathLen > 0 ? &_webview2RuntimePath[0] : nullptr;
 
 	auto options = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>();
-	options->put_AdditionalBrowserArguments(GetCommandLineW());
+	if (_gpuDisabled) {
+		options->put_AdditionalBrowserArguments(L"--disable-gpu");
+	}
 
 	HRESULT envResult = CreateCoreWebView2EnvironmentWithOptions(runtimePath, _temporaryFilesPath, options.Get(),
 		Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(

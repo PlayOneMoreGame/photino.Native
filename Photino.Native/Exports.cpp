@@ -65,6 +65,11 @@ extern "C"
 		instance->GetFullScreen(fullScreen);
 	}
 
+	EXPORTED void Photino_GetGPUDisabled(Photino *instance, bool *gpuDisabled)
+	{
+		instance->GetGPUDisabled(gpuDisabled);
+	}
+
 	EXPORTED void Photino_GetGrantBrowserPermissions(Photino* instance, bool* grant)
 	{
 		instance->GetGrantBrowserPermissions(grant);
